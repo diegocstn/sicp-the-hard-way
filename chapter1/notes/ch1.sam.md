@@ -219,7 +219,7 @@ Another form, using `else` (as last statement):
 ```
 (define (abs x)
   (cond ((< x 0) (- x))
-  		(else x)))
+      (else x)))
 ```
 
 But else is just a syntactic sugar. The following is equivalent (#t is a primitive value representing true):
@@ -227,7 +227,7 @@ But else is just a syntactic sugar. The following is equivalent (#t is a primiti
 ```
 (define (abs x)
   (cond ((< x 0) (- x))
-  		(#t x)))
+      (#t x)))
 ```
 
 The evaluation proceeds in order until a predicate that evaluates to `true` is found, at whith point it's consequent expresson is evaluated for the result. If none is true, the value of the `cond` is undefined.
@@ -359,3 +359,12 @@ The process uses an amount of steps that grows exponentially with the input, whi
 
 Tree recursive processes tend to be adequate to solve problems based on tree-like strucutures.
 
+#### 1.2.3 Orders of Growth
+
+When evaluating the tree of a process, the number of steps is proportional to the time taken for the evaluation.
+
+Orders of growth provide only a crude description of the behavior of a process. For example, a process
+requiring n 2 steps and a process requiring 1000n 2 steps and a process requiring 3n 2 + 10n + 17 steps all
+have (n 2 ) order of growth.
+
+#### 1.2.4 Exponentiation
