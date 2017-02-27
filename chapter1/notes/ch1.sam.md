@@ -368,3 +368,50 @@ requiring n 2 steps and a process requiring 1000n 2 steps and a process requirin
 have (n 2 ) order of growth.
 
 #### 1.2.4 Exponentiation
+
+A recursive procedure to calculate b^n, derived directly from the mathematical definition `b = b * b^n` (with `b^0 = 1`):
+
+```
+(define (expt b n)
+  (if (= n 0)
+      1
+      (* b (expt b (- n 1)))))
+```
+
+It requires Θ(n) steps an Θ(n) space. An equivalent linear-itearation:
+
+```
+(define (expt b n)
+  (define (expt-iter b counter result)
+    (if (= counter 0)
+      result
+      (expt-iter b (- counter 1) (* result b))))
+
+  (expt-iter b n 1))
+
+```
+
+This version runs in Θ(n) steps and constant space, as after every call to exp-iter, only the state of the local variables must be kept.
+
+We can also use successive squaring to compute exponentials using less steps:
+
+```
+b^n = b^(n/2)^2    if n is event
+b^n = b*b^(n-1)    if n is odd
+```
+
+Which yields the following procedure:
+```
+(define (fast-expt b n)
+  (cond ((= n 0) 1)
+        ((even? n) (square (fast-expt b (/ n 2))))
+        (else (* b (fast-expt b (- n 1))))))
+
+(define (even? n)
+  (= (remainder n 2) 0))
+```
+
+Remainder is considered a primitive procedure that runs in constant time.
+This process evolves logarithmically with n in both time and space.
+
+Computing `b^2n` requries only one more multiplaction than computing `b^n`.
