@@ -414,4 +414,25 @@ Which yields the following procedure:
 Remainder is considered a primitive procedure that runs in constant time.
 This process evolves logarithmically with n in both time and space.
 
-Computing `b^2n` requries only one more multiplaction than computing `b^n`.
+Computing `b^2n` requires only one more multiplication than computing `b^n`.
+
+### 1.2.5 GCD
+
+(linguistic epiphany: rational numbers are those that can be expressed as ratios (ratio-nal!))
+
+Finding the GCD is crucial to be able to simplify fractions. One way to obtain the GCD between two numbers is to factor them and search for common factors, but there is a more efficient algorithm (Euclid's Algorithm).
+
+>The idea of the algorithm is based on the observation that, if r is the remainder when a is divided by b, then the common divisors of a and b are precisely the same as the common divisors of b and r. Thus, we can use the equation `GCD(a, b) = GCD(b, r)` to successively reduce the problem to smaller pair of integers.
+
+```
+(define (gcd a b)
+  (if (= b 0)
+      a
+      (gcd b (remainder a b))))
+```
+
+T = O(logn)
+
+> Lamé's Theorem: If Euclid's Algorithm requires k steps to compute the GCD of some pair, then the smaller number in the pair must be greater than or equal to the kth Fibonacci number.
+
+> We can use this theorem to get an order-of-growth estimate for Euclid's Algorithm. Let n be the smaller of the two inputs to the procedure. If the process takes k steps, then we must have n> Fib (k)  k/5. Therefore the number of steps k grows as the logarithm (to the base ) of n. Hence, the order of growth is (log n).
