@@ -436,3 +436,85 @@ T = O(logn)
 > Lamé's Theorem: If Euclid's Algorithm requires k steps to compute the GCD of some pair, then the smaller number in the pair must be greater than or equal to the kth Fibonacci number.
 
 > We can use this theorem to get an order-of-growth estimate for Euclid's Algorithm. Let n be the smaller of the two inputs to the procedure. If the process takes k steps, then we must have n> Fib (k)  k/5. Therefore the number of steps k grows as the logarithm (to the base ) of n. Hence, the order of growth is (log n).
+
+### 1.2.6 Testing for Primality
+
+Given an integer n, decide whether or not it is a prime number.
+
+#### Try to find a number's divisors greater than 1
+
+We start testing with 2 and increasing until we reach sqrt(n), since if d is a divisor of n, then so is n/d. But d and n/d cannot both be greater than sqrt(n).
+
+```
+(define (smallest-divisor n)
+  (find-divisor n 2))
+(define (find-divisor n test-divisor)
+  (cond ((> (square test-divisor) n) n)
+        ((divides? test-divisor n) test-divisor)
+        (else (find-divisor n (+ test-divisor 1)))))
+(define (divides? a b)
+  (= (remainder b a) 0))
+```
+
+If a divisor is found, n is not prime.
+
+```
+(define (prime? n)
+  (= n (smallest-divisor n)))
+```
+
+The number of steps is hence proportional to sqrt(n).
+
+#### The Fermat test
+
+__Note: Pierre de Fermat - 1601-1665 - considered founder of modern number theory__
+
+> Fermat's Little Theorem: If n is a prime number and a is any positive integer less than n, then a raised to the nth power is congruent to a modulo n.
+
+Given n is prime, a ∈ ℕ, a < n => (a^n)modn = (a)modn
+
+If n is not prime, in general *most* of the numbers a < n will not satisfy the above relation.
+
+A possible algorithm using this theorem:
+- pick a random a < n and calculate (a^n)modn. Test if it equals a (since a < n, (a)modn = a).
+  - If it is not equal to a, then n is definitely not prime.
+  - If it is equal to a, then *chances are* good that n is prime. Repeat the process with a different random number to increase confidence, repeat until satisfactory.
+
+We will need the following procedure:
+
+```
+; computes (base ^ exp)modm
+(define (expmod base exp m)
+  (cond ((= exp 0) 1)
+        ((even? exp)
+         (remainder (square (expmod base (/ exp 2) m))
+                    m))
+        (else
+         (remainder (* base (expmod base (- exp 1) m))
+                    m))))
+```
+
+Since this uses successive squaring, we know the number of steps grows logarithmically with `exp`.
+
+```
+(define (fermat-test n)
+  (define (try-it a)
+    (= (expmod a n n) a))
+  (try-it (+ 1 (random (- n 1)))))
+```
+
+Running the test a given number of times gives us the desired confidence:
+
+```
+(define (fast-prime? n times)
+  (cond ((= times 0) true)
+        ((fermat-test n) (fast-prime? n (- times 1)))
+        (else false)))
+```
+
+### Probabilistic Methods
+
+> Here, the answer obtained is only probably correct. More precisely, if n ever fails the Fermat test, we can be certain that n is not prime. But the fact that n passes the test, while an extremely strong indication, is still not a guarantee that n is prime.
+
+The important aspect is the existence of tests for which one can prove that the chance of error becomes arbitrarily small. These have given birth to the probabilistic algorithms.
+
