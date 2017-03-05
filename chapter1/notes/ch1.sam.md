@@ -219,7 +219,7 @@ Another form, using `else` (as last statement):
 ```
 (define (abs x)
   (cond ((< x 0) (- x))
-  		(else x)))
+      (else x)))
 ```
 
 But else is just a syntactic sugar. The following is equivalent (#t is a primitive value representing true):
@@ -227,7 +227,7 @@ But else is just a syntactic sugar. The following is equivalent (#t is a primiti
 ```
 (define (abs x)
   (cond ((< x 0) (- x))
-  		(#t x)))
+      (#t x)))
 ```
 
 The evaluation proceeds in order until a predicate that evaluates to `true` is found, at whith point it's consequent expresson is evaluated for the result. If none is true, the value of the `cond` is undefined.
@@ -358,4 +358,163 @@ It satisfies the equation φ^2 = φ + 1.
 The process uses an amount of steps that grows exponentially with the input, while the space usage grows linearly: at any point in the computation we only need to keep track of the nodes that are above us in the tree. The parent nodes represent the deferred operations at that point (the stack depth), hence the space needed is proportional to the depth of the tree. The number of steps is proportional to the number of nodes in the tree.
 
 Tree recursive processes tend to be adequate to solve problems based on tree-like strucutures.
+
+#### 1.2.3 Orders of Growth
+
+When evaluating the tree of a process, the number of steps is proportional to the time taken for the evaluation.
+
+Orders of growth provide only a crude description of the behavior of a process. For example, a process
+requiring n 2 steps and a process requiring 1000n 2 steps and a process requiring 3n 2 + 10n + 17 steps all
+have (n 2 ) order of growth.
+
+#### 1.2.4 Exponentiation
+
+A recursive procedure to calculate b^n, derived directly from the mathematical definition `b = b * b^n` (with `b^0 = 1`):
+
+```
+(define (expt b n)
+  (if (= n 0)
+      1
+      (* b (expt b (- n 1)))))
+```
+
+It requires Θ(n) steps an Θ(n) space. An equivalent linear-itearation:
+
+```
+(define (expt b n)
+  (define (expt-iter b counter result)
+    (if (= counter 0)
+      result
+      (expt-iter b (- counter 1) (* result b))))
+
+  (expt-iter b n 1))
+
+```
+
+This version runs in Θ(n) steps and constant space, as after every call to exp-iter, only the state of the local variables must be kept.
+
+We can also use successive squaring to compute exponentials using less steps:
+
+```
+b^n = b^(n/2)^2    if n is event
+b^n = b*b^(n-1)    if n is odd
+```
+
+Which yields the following procedure:
+```
+(define (fast-expt b n)
+  (cond ((= n 0) 1)
+        ((even? n) (square (fast-expt b (/ n 2))))
+        (else (* b (fast-expt b (- n 1))))))
+
+(define (even? n)
+  (= (remainder n 2) 0))
+```
+
+Remainder is considered a primitive procedure that runs in constant time.
+This process evolves logarithmically with n in both time and space.
+
+Computing `b^2n` requires only one more multiplication than computing `b^n`.
+
+### 1.2.5 GCD
+
+(linguistic epiphany: rational numbers are those that can be expressed as ratios (ratio-nal!))
+
+Finding the GCD is crucial to be able to simplify fractions. One way to obtain the GCD between two numbers is to factor them and search for common factors, but there is a more efficient algorithm (Euclid's Algorithm).
+
+>The idea of the algorithm is based on the observation that, if r is the remainder when a is divided by b, then the common divisors of a and b are precisely the same as the common divisors of b and r. Thus, we can use the equation `GCD(a, b) = GCD(b, r)` to successively reduce the problem to smaller pair of integers.
+
+```
+(define (gcd a b)
+  (if (= b 0)
+      a
+      (gcd b (remainder a b))))
+```
+
+T = O(logn)
+
+> Lamé's Theorem: If Euclid's Algorithm requires k steps to compute the GCD of some pair, then the smaller number in the pair must be greater than or equal to the kth Fibonacci number.
+
+> We can use this theorem to get an order-of-growth estimate for Euclid's Algorithm. Let n be the smaller of the two inputs to the procedure. If the process takes k steps, then we must have n> Fib (k)  k/5. Therefore the number of steps k grows as the logarithm (to the base ) of n. Hence, the order of growth is (log n).
+
+### 1.2.6 Testing for Primality
+
+Given an integer n, decide whether or not it is a prime number.
+
+#### Try to find a number's divisors greater than 1
+
+We start testing with 2 and increasing until we reach sqrt(n), since if d is a divisor of n, then so is n/d. But d and n/d cannot both be greater than sqrt(n).
+
+```
+(define (smallest-divisor n)
+  (find-divisor n 2))
+(define (find-divisor n test-divisor)
+  (cond ((> (square test-divisor) n) n)
+        ((divides? test-divisor n) test-divisor)
+        (else (find-divisor n (+ test-divisor 1)))))
+(define (divides? a b)
+  (= (remainder b a) 0))
+```
+
+If a divisor is found, n is not prime.
+
+```
+(define (prime? n)
+  (= n (smallest-divisor n)))
+```
+
+The number of steps is hence proportional to sqrt(n).
+
+#### The Fermat test
+
+__Note: Pierre de Fermat - 1601-1665 - considered founder of modern number theory__
+
+> Fermat's Little Theorem: If n is a prime number and a is any positive integer less than n, then a raised to the nth power is congruent to a modulo n.
+
+Given n is prime, a ∈ ℕ, a < n => (a^n)modn = (a)modn
+
+If n is not prime, in general *most* of the numbers a < n will not satisfy the above relation.
+
+A possible algorithm using this theorem:
+- pick a random a < n and calculate (a^n)modn. Test if it equals a (since a < n, (a)modn = a).
+  - If it is not equal to a, then n is definitely not prime.
+  - If it is equal to a, then *chances are* good that n is prime. Repeat the process with a different random number to increase confidence, repeat until satisfactory.
+
+We will need the following procedure:
+
+```
+; computes (base ^ exp)modm
+(define (expmod base exp m)
+  (cond ((= exp 0) 1)
+        ((even? exp)
+         (remainder (square (expmod base (/ exp 2) m))
+                    m))
+        (else
+         (remainder (* base (expmod base (- exp 1) m))
+                    m))))
+```
+
+Since this uses successive squaring, we know the number of steps grows logarithmically with `exp`.
+
+```
+(define (fermat-test n)
+  (define (try-it a)
+    (= (expmod a n n) a))
+  (try-it (+ 1 (random (- n 1)))))
+```
+
+Running the test a given number of times gives us the desired confidence:
+
+```
+(define (fast-prime? n times)
+  (cond ((= times 0) true)
+        ((fermat-test n) (fast-prime? n (- times 1)))
+        (else false)))
+```
+
+### Probabilistic Methods
+
+> Here, the answer obtained is only probably correct. More precisely, if n ever fails the Fermat test, we can be certain that n is not prime. But the fact that n passes the test, while an extremely strong indication, is still not a guarantee that n is prime.
+
+The important aspect is the existence of tests for which one can prove that the chance of error becomes arbitrarily small. These have given birth to the probabilistic algorithms.
 
