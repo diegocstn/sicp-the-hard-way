@@ -36,11 +36,11 @@
 ; to find the three smallest primes larger than 1000;
 ; than 100,000; larger than 1,000,000. Note the time needed to test each prime.
 
-(find-primes 1000 1019)
-(find-primes 100000 100043)
-(find-primes 1000000 1000037)
-(find-primes 10000000 10000103)
-(find-primes 100000000 100000039)
+(find-primes 1000 1019) ; 1 0 0
+(find-primes 100000 100043); 1 1 2
+(find-primes 1000000 1000037) ; 3 3 3
+(find-primes 10000000 10000103) ; 8 8 5
+(find-primes 100000000 100000039) ; 14 13 13
 
 ; My results are compatible. Timing do seem to follow a linear ratio compared
 ; to the previous step, but closer to a 2-4 multiplication factor.
