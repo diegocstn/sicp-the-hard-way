@@ -518,3 +518,82 @@ Running the test a given number of times gives us the desired confidence:
 
 The important aspect is the existence of tests for which one can prove that the chance of error becomes arbitrarily small. These have given birth to the probabilistic algorithms.
 
+## 1.3 Formulating ABstractions with Higher-Order Procedures
+
+Procedures that manipulate procedures are called higher-order procedures. This allows us to define generic algorithms that can be parametrized by other operations, significantly increasing our power of abstraction.
+
+### 1.3.1 Procedures as Arguments
+
+Example: sum of a given function (as in mathematical sums)
+
+```
+(define (sum term a next b)
+  (if (> a b)
+      0
+      (+ (term a)
+         (sum term (next a) next b))))
+
+# Then we can use this generic function as a template for defining a function
+# that will calculate the sum of the cubes of every number from a to b:
+(define (inc n) (+ n 1))
+(define (sum-cubes a b)
+  (sum cube a inc b))
+
+```
+
+### 1.3.2  Constructing Procedures Using Lambda
+
+The definition of procedures with `define` is actually syntactic sugar for the more general form of defining procedures, with lambda. Lambda allows us to define the concept of procedure, which we can then assign to a name in the local environment using define or not.
+
+ex:
+```
+# The following expression creates a procedure, but doesn't do anything with it
+(lambda (x) (+ x 4))
+
+# While this assigns the created function to a name in the environment
+(define sum4 (lambda (x) (+ x 4)))
+
+# Which is the same as
+(define (sum4 x) (+ x 4))
+```
+
+#### Using let to create local variables
+
+Instead of using `define` to create local values within our procedures, there is a special construct called `let`. The generic form is:
+
+```
+(let ((<var1> <exp1>)
+      (<var2> <exp2>)
+
+      (<varn> <expn>))
+   <body>)
+```
+This way the <body> can use the names defined as <var1> ...<varn>. Those names are defined in a scope as local as possible.
+
+The following example produces 11:
+
+```
+(let ((a 5) (b 6)) (+ a b))
+```
+
+Our evaluation model doesn't need additional complexity to be able to evaluate lets, since they're equivalent to:
+
+```
+((lambda (<var1> <var2> ... <varn>) <body>) <exp1> <exp2> ... <expn>)
+```
+
+Just like in the above lambda equivalent, when using `let`, the expressions to be assigned to the local variables are evaluated in the outer scope.
+
+### 1.3.4 Procedures as Returned Values
+
+Procedures can also build other procedures and return them. Pretty cool, ahn?
+
+> As programmers, we should be alert to opportunities to identify the underlying abstractions in our programs and to build upon them and generalize them to create more powerful abstractions. This is not to say that one should always write programs in the most abstract way possible; expert programmers know how to choose the level of abstraction appropriate to their task. But it is important to be able to think in terms of these abstractions, so that we can be ready to apply them in new contexts. The significance of higher-order procedures is that they enable us to represent these abstractions explicitly as elements in our programming language, so that they can be handled just like other computational elements.
+
+#### First-class elements
+
+> In general, programming languages impose restrictions on the ways in which computational elements can be manipulated. Elements with the fewest restrictions are said to have first-class status. Some of the ``rights and privileges'' of first-class elements are:64
+>    - They may be named by variables.
+>    - They may be passed as arguments to procedures.
+>    - They may be returned as the results of procedures.
+>    - They may be included in data structures.
